@@ -92,16 +92,40 @@ public class DreisatSearchProvider implements ISearchProvider {
             String uri = MEDIATHEK_URI + a.attr("href");
             video.setUri(new URI(uri));
 
-            // parse the thumb
-            Element img = HtmlParserUtils.getTag(rowContent, "div[class~=MediathekListPic] a img");
-            video.setThumbnail(new URI(BASE_URI + img.attr("src")));
-
             // parse the title
             video.setTitle(a.text());
+
+            // parse the thumb
+            video.setThumbnail(parseThumb(rowContent));
+
+            // parse the description
+            video.setDescription(parseDescription(rowContent));
 
             // parse the duration
             video.setDuration(parseDuration(rowContent));
         }
+    }
+
+    private String parseDescription(String rowContent) {
+        String desc = "";
+        try {
+            Element mediathekLink = HtmlParserUtils.getTag(rowContent, "div[class~=FloatText] a.MediathekLink");
+            desc = mediathekLink.text();
+        } catch (Exception e) {
+            logger.log(LogService.LOG_WARNING, "Couldn't parse description", e);
+        }
+        return desc;
+    }
+
+    private URI parseThumb(String rowContent) {
+        URI thumbUri = null;
+        try {
+            Element img = HtmlParserUtils.getTag(rowContent, "div[class~=MediathekListPic] a img");
+            thumbUri = new URI(BASE_URI + img.attr("src"));
+        } catch (Exception e) {
+            logger.log(LogService.LOG_WARNING, "Couldn't parse thubmnail", e);
+        }
+        return thumbUri;
     }
 
     @Override
